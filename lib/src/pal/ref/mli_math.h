@@ -30,7 +30,7 @@ MLI_FORCE_INLINE T mli_math_asr_pos_nbits_fx(T x, int nbits)
 {
     // This function is internal to this file
     // and is required to avoid compiler issues.
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > (int)(sizeof(T) * 8 - 1))
         return x < (T)0 ? -1 : 0;
     return x >> nbits;
 }
@@ -38,7 +38,7 @@ MLI_FORCE_INLINE T mli_math_asr_pos_nbits_fx(T x, int nbits)
 template <typename T>
 MLI_FORCE_INLINE T mli_math_asr_fx(T x, int nbits)
 {
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > (int)(sizeof(T) * 8 - 1))
         return x < (T)0 ? -1 : 0;
     if (nbits < 0)
         return mli_math_asl_fx<T>(x, (-nbits));
@@ -76,7 +76,7 @@ MLI_FORCE_INLINE T mli_math_asr_rnd_fx(T x, int nbits)
     if (nbits == 0)
         return x;
 
-    if (nbits > (sizeof(T) * 8 - 1))
+    if (nbits > (int)(sizeof(T) * 8 - 1))
         return 0;
 
     // Rounding up:
