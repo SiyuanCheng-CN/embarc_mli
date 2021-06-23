@@ -42,6 +42,7 @@ struct s8asym_quant_specific_params {
 
 struct s8asym_quant_params {
     int16_t offset;
+    int32_t offset32;
     int16_t shift;
     int16_t scale;
 };

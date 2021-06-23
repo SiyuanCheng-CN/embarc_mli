@@ -83,10 +83,11 @@ MLI_FORCE_INLINE void define_requant_params(const mli_tensor *in, const mli_tens
     
     int16_t in_zp = mli_hlp_tensor_zero_offset(in, index);
     int16_t out_zp = mli_hlp_tensor_zero_offset(out, index);
-    
-    params->offset = mli_math_sub_fx<int16_t>(out_zp, 
-                     mli_math_cast_fx<int32_t, int16_t>(
-                     mli_math_mul_fx<int16_t, int32_t>(params->scale, in_zp), params->shift));
+
+    params->offset32 = mli_math_sub_fx<int32_t>(out_zp, 
+                     mli_math_cast_fx<int32_t, int32_t>(
+                     mli_math_mul_fx<int32_t, int32_t>(params->scale, in_zp), params->shift));
+    params->offset = params->offset32;
 }
 
 template <>
