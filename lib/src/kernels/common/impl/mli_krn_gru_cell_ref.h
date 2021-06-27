@@ -24,7 +24,7 @@
 namespace mli {
 namespace krn {
 namespace ref {
-    
+
 #pragma MLI_CODE_SECTION_START(".mli_lib")
 
 //========================================================================================
@@ -46,11 +46,11 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         const mli_tensor * in,
         const mli_tensor * prev_out,
         const mli_tensor * weights_in,
-        const mli_tensor * weights_out, 
+        const mli_tensor * weights_out,
         const mli_tensor * bias,
         const mli_lut * tanh_lut,
-        const mli_lut * sigm_lut, 
-        const mli_rnn_cell_cfg * cfg, 
+        const mli_lut * sigm_lut,
+        const mli_rnn_cell_cfg * cfg,
         mli_tensor *out) {
 
     constexpr bool asym = std::is_same<quant_T, s8asym_quant_specific_params>::value;
@@ -68,10 +68,10 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
 
 
     const mli_tensor * weights[] = {weights_in, weights_out};
-    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in), 
+    const MLI_PTR (io_T) inputs_ptr[] = {mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(in),
                                          mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(prev_out)};
 
-    if (cfg->direction == RNN_DIR_BACKWARD) 
+    if (cfg->direction == RNN_DIR_BACKWARD)
         inputs_ptr[0] += (seq_len - 1) * inputs_elements[0];
 
     mli_element_params one_el_params;
@@ -108,7 +108,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     ir_tensor.shape[1] = bias->shape[1];
     ir_tensor.mem_stride[0] = ir_tensor.shape[1];
     ir_tensor.mem_stride[1] = 1;
-    ir_tensor.rank = bias->rank; 
+    ir_tensor.rank = bias->rank;
     ir_tensor.el_type = in->el_type;
     ir_tensor.el_params = ir_asym_params;
 
@@ -134,7 +134,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     mli_hlp_create_subtensor(&ir_tensor, &iterator, &new_gate); iterator.offset[0]++;
     mli_hlp_create_subtensor(bias, &weight_iterator, &b_new_g);
 
-    w_in_new_g.data = weights_in->data; 
+    w_in_new_g.data = weights_in->data;
     w_in_new_g.rank = 2;
     w_in_new_g.shape[0] = weights_in->shape[1];
     w_in_new_g.shape[1] = weights_in->shape[2];
@@ -144,7 +144,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     w_in_new_g.el_type = weights_in->el_type;
     mli_prv_tensor_inc_data_ptr<w_T*>(&w_in_new_g, num_gates * w_gate_mem_strides[0]);
 
-    w_out_new_g.data = weights_out->data; 
+    w_out_new_g.data = weights_out->data;
     w_out_new_g.rank = 2;
     w_out_new_g.shape[0] = weights_out->shape[1];
     w_out_new_g.shape[1] = weights_out->shape[2];
@@ -155,7 +155,7 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     mli_prv_tensor_inc_data_ptr<w_T*>(&w_out_new_g, num_gates * w_gate_mem_strides[1]);
 
     const MLI_PTR (w_T) w_new_g_ptr[] = {
-        mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_in) + num_gates * w_gate_mem_strides[0], 
+        mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_in) + num_gates * w_gate_mem_strides[0],
         mli_prv_tensor_data_ptr<MLI_PTR (w_T)>(weights_out) + num_gates * w_gate_mem_strides[1]
     };
 
@@ -192,9 +192,9 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
     prev_out_reset.mem_stride[0] = reset_gate.mem_stride[0];
     prev_out_reset.mem_stride[1] = reset_gate.mem_stride[1];
     prev_out_reset.el_type = in->el_type;
-    prev_out_reset.el_params = ir_tensor.el_params;
+    prev_out_reset.el_params = prev_out->el_params;
 
-    const MLI_PTR (io_T) inputs_new_ptr[] = {inputs_ptr[0], 
+    const MLI_PTR (io_T) inputs_new_ptr[] = {inputs_ptr[0],
                                              mli_prv_tensor_data_ptr<MLI_PTR (io_T)>(&prev_out_reset)};
 
     for (int timestep = 0; timestep < seq_len; timestep++) {
@@ -278,8 +278,8 @@ MLI_FORCE_INLINE void gru_cell_prepare_and_run(
         temp.mem_stride[0] = new_gate.mem_stride[0];
         temp.mem_stride[1] = new_gate.mem_stride[1];
         temp.el_type = new_gate.el_type;
-        temp.el_params = current_hidden.el_params;
-   
+        temp.el_params = out->el_params;
+
         rnn_out.el_params = out->el_params;
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_MUL, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&new_gate, &update_gate, &temp);
         mli::krn::eltwise_prepare_and_run<io_T, ELTWISE_ADD, /*convert*/ asym, /*no_scalar*/ true, /*no_out_update*/ true, /*shape_1d*/ true>(&temp, &current_out, &rnn_out);
